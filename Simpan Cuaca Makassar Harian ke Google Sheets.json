@@ -1,0 +1,262 @@
+{
+  "name": "Simpan Cuaca Makassar Harian ke Google Sheets",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 6
+            }
+          ]
+        }
+      },
+      "id": "a86a041d-5d22-4ebd-8af0-2c9076c8e6dc",
+      "name": "Setiap Jam 6 Pagi",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        32,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://api.open-meteo.com/v1/forecast",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "latitude",
+              "value": "-5.1477"
+            },
+            {
+              "name": "longitude",
+              "value": "119.4327"
+            },
+            {
+              "name": "current",
+              "value": "temperature_2m,weather_code"
+            },
+            {
+              "name": "timezone",
+              "value": "Asia/Makassar"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "e5face0b-669e-414c-8bcb-1376015f5a42",
+      "name": "Ambil Cuaca Makassar",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        192,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "tanggal",
+              "name": "tanggal",
+              "type": "string",
+              "value": "={{ $now.setZone(\"Asia/Makassar\").toFormat(\"yyyy-MM-dd\") }}"
+            },
+            {
+              "id": "cuaca",
+              "name": "cuaca",
+              "type": "string",
+              "value": "={{ (function(c){ if (c === 0) return \"Cerah\"; if (c <= 2) return \"Cerah Berawan\"; if (c === 3) return \"Mendung\"; if (c <= 48) return \"Berkabut\"; if (c <= 57) return \"Gerimis\"; if (c <= 67) return \"Hujan\"; if (c <= 77) return \"Salju\"; if (c <= 82) return \"Hujan Lebat\"; if (c <= 86) return \"Salju\"; return \"Badai Petir\"; })($json.current.weather_code) }}"
+            },
+            {
+              "id": "suhu",
+              "name": "suhu",
+              "type": "number",
+              "value": "={{ $json.current.temperature_2m }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "c4d9f327-464e-4bac-be7f-adaca536b8ce",
+      "name": "Siapkan Data Cuaca",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        400,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "1fF7MUMUSAFL8QTOJlVCOMb17qlkUhyQORqB3gTJhrdM",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1fF7MUMUSAFL8QTOJlVCOMb17qlkUhyQORqB3gTJhrdM/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Cuaca-Makassar",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1fF7MUMUSAFL8QTOJlVCOMb17qlkUhyQORqB3gTJhrdM/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Tanggal": "={{ $json.tanggal }}",
+            "Suhu": "={{ $json.suhu }}",
+            "Cuaca": "={{ $json.cuaca }}"
+          },
+          "matchingColumns": [
+            "Tanggal"
+          ],
+          "schema": [
+            {
+              "id": "Tanggal",
+              "displayName": "Tanggal",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Suhu",
+              "displayName": "Suhu",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Cuaca",
+              "displayName": "Cuaca",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {
+          "locationDefine": {
+            "values": {
+              "headerRow": 2
+            }
+          }
+        }
+      },
+      "id": "e877e6c7-838d-4390-8459-2d98b537f359",
+      "name": "Simpan ke Google Sheets",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        576,
+        0
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "oPneMzl229jQYQU6",
+          "name": "Google Sheets account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fromEmail": "amelialyn956@gmail.com",
+        "toEmail": "amelialyn956@gmail.com",
+        "subject": "Tes n8n",
+        "html": "Halo ini tes dari n8n, berhasil!",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        768,
+        0
+      ],
+      "id": "8074ad54-3c0f-46d5-b4b8-830be7117b78",
+      "name": "Send an Email",
+      "webhookId": "26e68dd4-5292-4e95-8976-54af0cd5027d",
+      "credentials": {
+        "smtp": {
+          "id": "xMdvKUX82lsWVBnx",
+          "name": "SMTP account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Setiap Jam 6 Pagi": {
+      "main": [
+        [
+          {
+            "node": "Ambil Cuaca Makassar",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ambil Cuaca Makassar": {
+      "main": [
+        [
+          {
+            "node": "Siapkan Data Cuaca",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Siapkan Data Cuaca": {
+      "main": [
+        [
+          {
+            "node": "Simpan ke Google Sheets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simpan ke Google Sheets": {
+      "main": [
+        [
+          {
+            "node": "Send an Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "timezone": "Asia/Makassar"
+  },
+  "versionId": "4edfb790-257e-4299-8de3-5292419516eb",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "2bd73cc15e8f045d9ac01232d06ebe12cebc0f1ef1e031ed2468668b3384dc16"
+  },
+  "nodeGroups": [],
+  "id": "JBAe92ro3PppdYSy",
+  "tags": []
+}
